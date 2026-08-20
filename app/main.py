@@ -90,3 +90,22 @@ def get_booking(ticket_id: str, db: Session = Depends(get_db)):
         "status": booking.status
     }
     
+@app.patch("/bookings/{ticket_id}/cancel")
+def cancel_booking(ticket_id: str, db :Session = Depends(get_db)):
+    booking = db.query(Booking).filter(
+        Booking.ticket_id == ticket_id
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Booking is already cancelled")
+
+    booking.status = "cancelled"
+    db.commit()
+    db.refresh(booking)
+    return{
+        "message": "Booking cancelled successfully",
+        "ticket_id": booking.ticket_id,
+        "status": booking.status
+    }
